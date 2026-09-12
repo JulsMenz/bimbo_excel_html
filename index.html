@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visor de Excel en la Nube</title>
+    <!-- Importar la librería SheetJS para leer Excel -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f9; color: #333; }
+        h2 { color: #0066cc; }
+        .tab-container { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 15px; border-bottom: 2px solid #ddd; padding-bottom: 10px; }
+        .tab-button { background-color: #e0e0e0; border: none; padding: 10px 15px; cursor: pointer; font-size: 14px; border-radius: 4px; transition: background 0.3s; }
+        .tab-button:hover { background-color: #ccc; }
+        .tab-button.active { background-color: #0066cc; color: white; font-weight: bold; }
+        .tab-content { display: none; background: white; padding: 15px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); overflow-x: auto; max-height: 600px; }
+        .tab-content.active { display: block; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #0066cc; color: white; position: sticky; top: 0; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+    </style>
+</head>
+<body>
+
+    <h2>📊 Visor de Datos de Excel</h2>
+    <p>Contenido de las hojas del archivo cargado:</p>
+
+    <!-- Contenedor para las pestañas y el contenido -->
+    <div id="pestanas-botones" class="tab-container"></div>
+    <div id="pestanas-contenido"></div>
+
+    <script>
+        // Cambia "datos.xlsx" por el nombre exacto de tu archivo de Excel en el repositorio
+        const urlArchivoExcel = 'INFORME DE PRODUCCION (RIPRO) v2 1.xlsx'; 
+
+        async function cargarExcel() {
+            try {
+                let respuesta = await fetch(urlArchivoExcel);
+                let datosBinarios = await respuesta.arrayBuffer();
+                let libro = XLSX.read(datosBinarios, { type: 'array' });
+
+                let contenedorBotones = document.getElementById('pestanas-botones');
+                let contenedorContenido = document.getElementById('pestanas-contenido');
+
+                libro.SheetNames.forEach((nombreHoja, index) => {
+                    // Crear botón de pestaña
+                    let boton = document.createElement('button');
+                    boton.className = tab-button ${index === 0 ? 'active' : ''};
+                    boton.innerText = nombreHoja;
+                    boton.onclick = () => cambiarPestana(index);
+                    contenedorBotones.appendChild(boton);
+
+                    // Convertir hoja a tabla HTML
+                    let hoja = libro.Sheets[nombreHoja];
+                    let htmlTabla = XLSX.utils.sheet_to_html(hoja, { editable: false });
+
+                    // Crear contenedor de la hoja
+                    let divContenido = document.createElement('div');
+                    divContenido.className = tab-content ${index === 0 ? 'active' : ''};
+                    divContenido.innerHTML = <h3>Hoja: ${nombreHoja}</h3> + htmlTabla;
+                    contenedorContenido.appendChild(divContenido);
+                });
+            } catch (error) {
+                document.body.innerHTML += <p style="color:red;">Error al cargar el archivo Excel: ${error}</p>;
+            }
+        }
+
+        function cambiarPestana(indiceSeleccionado) {
+            let botones = document.querySelectorAll('.tab-button');
+            let contenidos = document.querySelectorAll('.tab-content');
+
+            botones.forEach((btn, idx) => {
+                btn.classList.toggle('active', idx === indiceSeleccionado);
+                contenidos[idx].classList.toggle('active', idx === indiceSeleccionado);
+            });
+        }
+
+        cargarExcel();
+    </script>
+
+</body>
+</html>
